@@ -36,6 +36,7 @@ public class BoatMovement : MonoBehaviour
 
         try
         {
+            // 讀取 Arduino 數據
             if (serialPort.BytesToRead > 0)
             {
                 string data = serialPort.ReadLine().Trim();
@@ -80,6 +81,34 @@ public class BoatMovement : MonoBehaviour
 
         // **速度衰減**
         speedMultiplier = Mathf.Max(speedMultiplier * decayRate, 1.0f);
+
+        // **檢查 Q 和 E 鍵的輸入 (使用 GetKey 而不是 GetKeyDown)**
+        if (Input.GetKey(KeyCode.Q))  // 按住 Q 鍵觸發左槳
+        {
+            SimulateLeftPaddle();
+        }
+        else if (Input.GetKey(KeyCode.E))  // 按住 E 鍵觸發右槳
+        {
+            SimulateRightPaddle();
+        }
+    }
+
+    // 模擬左槳的動作
+    void SimulateLeftPaddle()
+    {
+        float actualMoveDistance = baseMoveDistance * speedMultiplier;
+        targetPosition = transform.position + Quaternion.Euler(0, currentRotation, 0) * new Vector3(-actualMoveDistance, 0, actualMoveDistance);
+        targetRotation -= rotationStep;  // 小幅向左旋轉
+        speedMultiplier = Mathf.Min(speedMultiplier + 0.5f, maxMultiplier);
+    }
+
+    // 模擬右槳的動作
+    void SimulateRightPaddle()
+    {
+        float actualMoveDistance = baseMoveDistance * speedMultiplier;
+        targetPosition = transform.position + Quaternion.Euler(0, currentRotation, 0) * new Vector3(actualMoveDistance, 0, actualMoveDistance);
+        targetRotation += rotationStep;  // 小幅向右旋轉
+        speedMultiplier = Mathf.Min(speedMultiplier + 0.5f, maxMultiplier);
     }
 
     void OnApplicationQuit()
@@ -87,3 +116,4 @@ public class BoatMovement : MonoBehaviour
         serialPort.Close();
     }
 }
+
